@@ -13,21 +13,21 @@ function normalize(value: string) {
 }
 
 function TaskFilters() {
-  const [subjectQuery, setSubjectQuery] = useState('')
-  const [teacherQuery, setTeacherQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
   const filteredTasks = tasks.filter((task) => {
-    const matchesSubject = normalize(task.materia).includes(normalize(subjectQuery))
-    const matchesTeacher = normalize(task.docente).includes(normalize(teacherQuery))
+    const query = normalize(searchQuery)
+    const matchesSearch =
+      normalize(task.materia).includes(query) ||
+      normalize(task.docente).includes(query)
     const matchesStatus = statusFilter === '' || task.estado === statusFilter
 
-    return matchesSubject && matchesTeacher && matchesStatus
+    return matchesSearch && matchesStatus
   })
 
   function clearFilters() {
-    setSubjectQuery('')
-    setTeacherQuery('')
+    setSearchQuery('')
     setStatusFilter('')
   }
 
@@ -37,25 +37,14 @@ function TaskFilters() {
         aria-label="Filtrar tareas"
         className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-5"
       >
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block min-w-0">
-            <span className="mb-1.5 block text-sm font-medium text-slate-700">Materia</span>
+            <span className="mb-1.5 block text-sm font-medium text-slate-700">Materia o docente</span>
             <input
               type="search"
-              value={subjectQuery}
-              onChange={(event) => setSubjectQuery(event.target.value)}
-              placeholder="Buscar por materia..."
-              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-            />
-          </label>
-
-          <label className="block min-w-0">
-            <span className="mb-1.5 block text-sm font-medium text-slate-700">Docente</span>
-            <input
-              type="search"
-              value={teacherQuery}
-              onChange={(event) => setTeacherQuery(event.target.value)}
-              placeholder="Buscar por docente..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Buscar por materia o docente..."
               className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
             />
           </label>
@@ -85,7 +74,7 @@ function TaskFilters() {
         <button
           type="button"
           onClick={clearFilters}
-          disabled={!subjectQuery && !teacherQuery && !statusFilter}
+          disabled={!searchQuery && !statusFilter}
           className="rounded-lg px-3 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent"
         >
           Limpiar filtros
