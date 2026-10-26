@@ -1,8 +1,14 @@
 import { useState } from 'react'
-import { tasks, type TaskStatus } from '../data/tasks'
+import { statuses, type Task, type TaskStatus } from '../data/tasks'
+import { isoDate } from '../utils/taskStorage'
 import TaskCard from './TaskCard'
 
-const statuses: TaskStatus[] = ['Pendiente', 'En progreso', 'Finalizada']
+type TaskFiltersProps = {
+  tasks: Task[]
+  onEdit: (task: Task) => void
+  onDelete: (id: number) => void
+  onStatusChange: (id: number, estado: TaskStatus) => void
+}
 
 function normalize(value: string) {
   return value
@@ -12,8 +18,9 @@ function normalize(value: string) {
     .trim()
 }
 
-function TaskFilters() {
+function TaskFilters({ tasks, onStatusChange, onEdit, onDelete }: TaskFiltersProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [sortOrder, setSortOrder] = useState('asc')
   const [statusFilter, setStatusFilter] = useState('')
 
   const filteredTasks = tasks.filter((task) => {
@@ -24,7 +31,7 @@ function TaskFilters() {
     const matchesStatus = statusFilter === '' || task.estado === statusFilter
 
     return matchesSearch && matchesStatus
-  })
+  }).sort((a, b) => (isoDate(a.fecha).localeCompare(isoDate(b.fecha)) || a.id - b.id) * (sortOrder === 'asc' ? 1 : -1))
 
   function clearFilters() {
     setSearchQuery('')
@@ -37,7 +44,7 @@ function TaskFilters() {
         aria-label="Filtrar tareas"
         className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-5"
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <label className="block min-w-0">
             <span className="mb-1.5 block text-sm font-medium text-slate-700">Materia o docente</span>
             <input
@@ -64,6 +71,13 @@ function TaskFilters() {
               ))}
             </select>
           </label>
+          <label className="block min-w-0">
+            <span className="mb-1.5 block text-sm font-medium text-slate-700">Orden por fecha</span>
+            <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
+              <option value="asc">Más próximas primero</option>
+              <option value="desc">Más lejanas primero</option>
+            </select>
+          </label>
         </div>
       </section>
 
@@ -82,9 +96,9 @@ function TaskFilters() {
       </div>
 
       {filteredTasks.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 xl:grid-cols-3">
           {filteredTasks.map((task) => (
-            <TaskCard key={task.id} {...task} />
+            <TaskCard key={task.id} {...task} onStatusChange={onStatusChange} onEdit={() => onEdit(task)} onDelete={onDelete} />
           ))}
         </div>
       ) : (
